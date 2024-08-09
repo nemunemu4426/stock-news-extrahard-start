@@ -21,22 +21,24 @@ day_before_yesterday_close_stock_price = float(data[1][1]['4. close'])
 # Instead of printing ("Get News"), actually get the first 3 news pieces for the COMPANY_NAME. 
 if abs(yesterday_close_stock_price - day_before_yesterday_close_stock_price) / day_before_yesterday_close_stock_price > 0.005:
     news_api_key = os.getenv("NEWS_API_KEY")
-    # news_api_url = f"https://newsapi.org/v2/top-headlines?country=us&q={COMPANY_NAME}&apiKey={news_api_key}"
-    news_api_url = f"https://newsapi.org/v2/top-headlines?country=us&apiKey={news_api_key}"
+    news_api_url = f"https://newsapi.org/v2/everything?q={COMPANY_NAME}&apiKey={news_api_key}"
     r = requests.get(news_api_url)
     data = r.json()
     data = data["articles"][:3]
     client = Client(os.getenv("TWILIO_ACCOUNT_ID"), os.getenv("TWILIO_AUTH_TOKEN"))
     mark = "🔺" if yesterday_close_stock_price > day_before_yesterday_close_stock_price else "🔻"
-    body = f"{STOCK}: {mark} {int(abs(yesterday_close_stock_price - day_before_yesterday_close_stock_price) / day_before_yesterday_close_stock_price * 100)}%\n"
-    for item in data:
-        body += f"Headline: {item['title']}\nBrief: {item['description']}\n"
     message = client.messages.create(
-        body=body,
+        body=f"{STOCK}: {mark} {int(abs(yesterday_close_stock_price - day_before_yesterday_close_stock_price) / day_before_yesterday_close_stock_price * 100)}%",
         from_="+14195160475",
-        to="+819092024495"
+        to="+819092024495"        
     )
-    print(message.status)
+    for item in data:
+        message = client.messages.create(
+            body=f"Headline: {item['title']}\nBrief: {item['description']}",
+            from_="+14195160475",
+            to="+819092024495"
+        )
+        print(message.status)
 
 
 ## STEP 3: Use https://www.twilio.com
